@@ -8,5 +8,9 @@ Building a classifier that leverages keras, pre-trained [imagenet](*) model and 
 
 - **[Dataset used](./Data/Dataset)** for testing this classifier contains multiple image of dogs of different breeds (German shepherd,Golden Retriever,pug)
 
-- For **[Sample](./Data/Sample)** we have a image of germen shepherd in sample folder 📂.
+- For **[Sample](./Data/Sample)** we have a image of germen shepherd in sample folder.
+
+### Results
+
+**[ClassifiedImages](./Data/ClassifiedImages)** contains all the grouped images after classification.
 
