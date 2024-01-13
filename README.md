@@ -1,6 +1,6 @@
 ### Image Classification Using Machine Learning
 
-Create a classifier using Keras, a pre-trained ImageNet model, and cosine similarity to categorize and group similar images in a folder based on a provided sample image.
+Creating a classifier using Keras,pre-trained ImageNet model and cosine similarity to categorize and group similar images in a folder based on a provided sample image.
 
 #### **Datasets**
 
