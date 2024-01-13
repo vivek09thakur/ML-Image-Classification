@@ -1,6 +1,6 @@
 ## Image Classification Using Machine Learning
 
-Building a classifier that leverages keras,pre-trained [imagenet](*) and cosine similarity to classify and group similar kind of image in folder to the given sample image.
+Building a classifier that leverages keras, pre-trained [imagenet](*) model and cosine similarity to classify and group similar kind of image in folder to the given sample image.
 
 ## Getting Started
 
