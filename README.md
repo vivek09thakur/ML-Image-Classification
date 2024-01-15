@@ -1,4 +1,4 @@
-## **Image Classification Using Machine Learing Model**
+### **Image Classification Using Machine Learing Model**
 In this project, We are creating a machine learning classifier to classify and group similar kind of image to the sample images from the given dataset. The model leverages [Keras-API](https://keras.io/) to process the images and [imagenet model](https://www.image-net.org/) to extract features of the images. So It can be classified based on the [cosine similarity](https://www.sciencedirect.com/topics/computer-science/cosine-similarity#:~:text=Cosine%20similarity%20measures%20the%20similarity,document%20similarity%20in%20text%20analysis) of sample image and rest of image in dataset.
 
 ### References
