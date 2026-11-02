@@ -13,7 +13,6 @@ Outputs to model/:
 """
 
 import argparse
-import json
 import sys
 import urllib.request
 from pathlib import Path
@@ -69,7 +68,6 @@ def main() -> None:
     prototypes = np.stack([np.mean(features[l], axis=0) for l in labels])
     prototypes /= np.linalg.norm(prototypes, axis=1, keepdims=True)
     np.savez(MODEL_DIR / "prototypes.npz", prototypes=prototypes.astype(np.float32), labels=np.array(labels))
-    (MODEL_DIR / "labels.json").write_text(json.dumps(labels, indent=2))
     print(f"saved {MODEL_DIR / 'prototypes.npz'} ({embedder_path.stat().st_size / 1e6:.1f} MB embedder)")
 
 

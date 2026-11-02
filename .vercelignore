@@ -1,7 +1,9 @@
 .venv
 .git
+.gitignore
 data
 train
-Colab Notebook
+tests
 README.md
 __pycache__
+.pytest_cache

@@ -7,6 +7,7 @@ __pycache__/
 data/
 .venv/
 .vercel/
+.pytest_cache/
 
 # C extensions
 *.so

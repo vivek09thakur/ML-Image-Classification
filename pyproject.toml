@@ -2,3 +2,14 @@
 name = "animal-classifier"
 version = "1.0.0"
 requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "jinja2",
+    "python-multipart",
+    "pillow",
+    "numpy",
+    "ai-edge-litert",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
