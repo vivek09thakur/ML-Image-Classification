@@ -1,4 +1,4 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/main.py" }],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": { "main.py": { "memory": 1024, "maxDuration": 30 } }
 }
