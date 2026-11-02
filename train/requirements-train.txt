@@ -1,0 +1,5 @@
+icrawler
+truststore
+pillow
+numpy
+ai-edge-litert

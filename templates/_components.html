@@ -1,0 +1,23 @@
+{% macro logo(class='logo') -%}
+<svg class="{{ class }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M5 17.5 9.5 12.5 13 16.5 15 14.5 19 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="16" cy="8" r="2" class="accent"/>
+</svg>
+{%- endmacro %}
+
+{% macro button(label, kind='primary', type='button', id=None, hidden=False, busy_label=None, attrs='') -%}
+<button class="btn btn--{{ kind }}" type="{{ type }}"
+  {%- if id %} id="{{ id }}"{% endif %}
+  {%- if hidden %} hidden{% endif %}
+  {%- if busy_label %} data-busy-label="{{ busy_label }}"{% endif %}
+  {%- if attrs %} {{ attrs }}{% endif %}>{{ label }}</button>
+{%- endmacro %}
+
+{% macro option(label, pct, icon) -%}
+<li class="option">
+  <span class="ring" style="--p: {{ pct }}%" role="img" aria-label="{{ label }} {{ pct }}%"><span aria-hidden="true">{{ icon }}</span></span>
+  <span class="small">{{ label }}</span>
+  <span class="muted small">{{ pct }}%</span>
+</li>
+{%- endmacro %}

@@ -1,75 +1,61 @@
-import os
-import cv2
+"""Animal classifier: TFLite image embedder + cosine similarity to class prototypes.
+
+Same approach as the original project (ImageNet features + cosine similarity)
+with a 10 MB MobileNetV3 .tflite embedder instead of VGG16, so it runs on
+Vercel without TensorFlow.
+"""
+
+from pathlib import Path
+
 import numpy as np
-from keras.utils import load_img, img_to_array
-from keras.applications.vgg16 import VGG16, preprocess_input
-from sklearn.metrics.pairwise import cosine_similarity
-from shutil import copyfile
+from ai_edge_litert.interpreter import Interpreter
+from PIL import Image, ImageOps
+
+MODEL_DIR = Path(__file__).resolve().parents[1] / "model"
+EMBEDDER_PATH = MODEL_DIR / "embedder.tflite"
+PROTOTYPES_PATH = MODEL_DIR / "prototypes.npz"
+
+TEMPERATURE = 12.0
+UNSURE_SIMILARITY = 0.25
 
 
 class CLASSIFIER:
-    
-    def __init__(self):
-        pass
-    
-    def load_and_preprocess_image(self,img_path, target_size=(224, 224)):
-        img = load_img(img_path, target_size=target_size)
-        print(img)
-        img_array = img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array = preprocess_input(img_array)
-        return img_array
-    
-    def extract_features(self,img_path,model):
-        img_data = self.load_and_preprocess_image(img_path)
-        vgg16_feature = model.predict(img_data)
-        return vgg16_feature.flatten()
-    
-    def get_similarity(self,feature1,feature2):
-        feature1 = feature1.reshape(1,-1)
-        feature2 = feature2.reshape(1,-1)
-        similarity = cosine_similarity(feature1,feature2)
-        return similarity
-    
-    def find_and_group_similar_images(self,
-                                      sample_image_folder,
-                                      dataset_folder,
-                                      threshold=0.85,
-                                      output_folder='output'):
-        
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
-            
-        model = VGG16(weights='imagenet', include_top=False)
-        for sample_image_filename in os.listdir(sample_image_folder):
-            if sample_image_filename.endswith(('.jpg','.png','.jpeg')):
-                sample_image_path = os.path.join(
-                    sample_image_folder,
-                    sample_image_filename
-                )
-                
-                sample_output_folder = os.path.join(output_folder,os.path.splitext(sample_image_filename)[0])
-                
-                if not os.path.exists(sample_output_folder):
-                    os.mkdir(sample_output_folder)
-                    
-                sample_image_feature = self.extract_features(sample_image_path,model)
-                
-                for dataset_image_filename in os.listdir(dataset_folder):
-                    if dataset_image_filename.endswith(('.jpg','.png','.jpeg')):
-                        dataset_image_path = os.path.join(
-                            dataset_folder,
-                            dataset_image_filename
-                        )
-                        
-                        current_feature = self.extract_features(dataset_image_path,model)
-                        similarty = self.get_similarity(sample_image_feature,current_feature)
-                        
-                        if similarty > threshold:
-                            output_path = os.path.join(sample_output_folder,dataset_image_filename)
-                            copyfile(dataset_image_path,output_path)
-                            print('Found similar image {} and {} with similarity {}'.format(
-                                sample_image_filename,
-                                dataset_image_filename,
-                                similarty
-                            ))
+    def __init__(self, embedder_path: Path = EMBEDDER_PATH, prototypes_path: Path | None = PROTOTYPES_PATH):
+        self.interpreter = Interpreter(model_path=str(embedder_path), num_threads=2)
+        self.interpreter.allocate_tensors()
+        self._input = self.interpreter.get_input_details()[0]
+        self._output = self.interpreter.get_output_details()[0]
+        self.input_size = int(self._input["shape"][1])
+
+        self.labels: list[str] = []
+        self.prototypes = np.zeros((0, 1), dtype=np.float32)
+        if prototypes_path is not None and Path(prototypes_path).exists():
+            data = np.load(prototypes_path)
+            self.labels = [str(l) for l in data["labels"]]
+            self.prototypes = data["prototypes"].astype(np.float32)
+
+    def load_and_preprocess_image(self, im: Image.Image) -> np.ndarray:
+        size = (self.input_size, self.input_size)
+        im = ImageOps.fit(im.convert("RGB"), size, Image.BILINEAR)
+        return np.asarray(im, dtype=np.float32)[None] / 255.0
+
+    def extract_features(self, im: Image.Image) -> np.ndarray:
+        self.interpreter.set_tensor(self._input["index"], self.load_and_preprocess_image(im))
+        self.interpreter.invoke()
+        vec = self.interpreter.get_tensor(self._output["index"]).reshape(-1).astype(np.float32)
+        return vec / (np.linalg.norm(vec) + 1e-8)
+
+    @staticmethod
+    def get_similarity(feature1: np.ndarray, feature2: np.ndarray) -> float:
+        return float(np.dot(feature1, feature2))
+
+    def predict(self, im: Image.Image) -> list[dict]:
+        feature = self.extract_features(im)
+        sims = self.prototypes @ feature
+        exp = np.exp((sims - sims.max()) * TEMPERATURE)
+        confidences = exp / exp.sum()
+        order = np.argsort(-sims)
+        return [
+            {"label": self.labels[i], "similarity": float(sims[i]), "confidence": float(confidences[i])}
+            for i in order
+        ]

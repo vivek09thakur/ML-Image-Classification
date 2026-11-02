@@ -1,0 +1,6 @@
+fastapi
+jinja2
+python-multipart
+pillow
+numpy
+ai-edge-litert

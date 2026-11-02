@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_components.html" import logo, button, option %}
+
+{% block title %}ML Image Classifier — Which animal are you?{% endblock %}
+{% block meta %}<meta name="description" content="Upload a selfie and find out which of 10 animals you are." />{% endblock %}
+
+{% block content %}
+<header class="brand">
+  <h1 class="brand-name">{{ logo() }} ML Image Classifier</h1>
+  <p class="muted">Find out which animal you are</p>
+</header>
+
+{% if result %}
+<section class="card card--surface result" aria-labelledby="result-title">
+  <img class="thumb" src="{{ thumb }}" alt="The photo you uploaded" width="120" height="120" />
+  <span class="result-icon" aria-hidden="true">{{ result.icon }}</span>
+  <p class="muted small">Closest match</p>
+  <h2 id="result-title">{{ result.label | capitalize }} · {{ result.percent }}%</h2>
+  <ul class="options" aria-label="Other options">
+    {% for p in result.others %}{{ option(p.label | capitalize, p.percent, p.icon) }}{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<form class="stack" action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data"
+      data-upload data-home="{{ url_for('index') }}">
+  <label class="dropzone{% if error %} is-invalid{% endif %}" for="photo">
+    <input id="photo" name="photo" type="file" accept="image/*" required class="visually-hidden"
+           aria-describedby="photo-help{% if error %} photo-error{% endif %}"
+           {% if error %}aria-invalid="true"{% endif %} />
+    <img class="preview" alt="" hidden data-preview />
+    <span class="dropzone-prompt" data-prompt>
+      <span class="dropzone-title">Choose a photo</span>
+      <span class="muted small" id="photo-help">or drop one here · JPG, PNG or WebP</span>
+    </span>
+    <span class="dropzone-name muted small" hidden data-filename></span>
+  </label>
+  {% if error %}<p id="photo-error" class="error" role="alert">{{ error }}</p>{% endif %}
+  <div class="actions">
+    {{ button('Upload another', kind='secondary', hidden=True, attrs='data-reset') }}
+    {{ button('Try another photo' if result else 'Find my animal', type='submit', busy_label='Finding your animal…') }}
+  </div>
+</form>
+{% endblock %}

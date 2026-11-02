@@ -1,0 +1,7 @@
+.venv
+.git
+data
+train
+Colab Notebook
+README.md
+__pycache__
