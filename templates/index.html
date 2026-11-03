@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% from "_components.html" import logo, button, option %}
 
-{% block title %}ML Image Classifier — Which animal are you?{% endblock %}
-{% block meta %}<meta name="description" content="Upload a selfie and find out which of 10 animals you are." />{% endblock %}
+{% block title %}{{ site.name }} — {{ site.tagline }}{% endblock %}
+{% block description %}{{ site.description }}{% endblock %}
 
 {% block content %}
 <header class="brand">
-  <h1 class="brand-name">{{ logo() }} ML Image Classifier</h1>
-  <p class="muted">Find out which animal you are</p>
+  <h1 class="brand-name">{{ logo() }} {{ site.name }}</h1>
+  <p class="muted">{{ site.tagline }}</p>
 </header>
 
 <div class="layout">

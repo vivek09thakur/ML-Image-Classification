@@ -7,11 +7,12 @@ POST /api/predict  multipart image -> JSON predictions
 
 import base64
 import io
+import os
 from datetime import date
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -25,6 +26,15 @@ MAX_UPLOAD_BYTES = 4 * 1024 * 1024
 DECODE_SIDE = 512
 THUMB_SIDE = 240
 OTHER_OPTIONS = 2
+
+SITE = {
+    "name": "ML Image Classifier",
+    "tagline": "Find out which animal you are",
+    "description": "Upload a selfie and find out which of 10 animals you look like — lion, tiger, elephant, dog, cat, rabbit, panda, bear, crocodile or deer. Free, instant, runs on a tiny on-device ML model.",
+    "url": os.environ.get("SITE_URL", "https://ml-image-classification.vercel.app/"),
+    "author": "Vivek Thakur",
+    "author_url": "https://vishme.vercel.app",
+}
 
 
 class CachedStaticFiles(StaticFiles):
@@ -44,7 +54,7 @@ def asset_context(request: Request) -> dict:
         version = int(path.stat().st_mtime) if path.exists() else 0
         return f"{request.url_for('static', path=name)}?v={version}"
 
-    return {"asset": asset, "year": date.today().year}
+    return {"asset": asset, "year": date.today().year, "site": SITE}
 
 
 templates = Jinja2Templates(directory=ROOT / "templates", context_processors=[asset_context])
@@ -126,8 +136,24 @@ async def predict(request: Request, photo: UploadFile | None = File(None)):
     try:
         im = await read_image(photo)
     except UploadError as e:
-        return render(request, status=e.status, error=e.message)
-    return render(request, result=classify(im), thumb=thumbnail_data_url(im))
+        return render(request, status=e.status, error=e.message, noindex=True)
+    return render(request, result=classify(im), thumb=thumbnail_data_url(im), noindex=True)
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
+async def robots():
+    return f"User-agent: *\nAllow: /\nDisallow: /predict\nDisallow: /api/\nSitemap: {SITE['url']}sitemap.xml\n"
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap():
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        f"<url><loc>{SITE['url']}</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>"
+        "</urlset>"
+    )
+    return Response(xml, media_type="application/xml")
 
 
 @app.post("/api/predict")
