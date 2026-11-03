@@ -10,6 +10,7 @@
   <p class="muted">Find out which animal you are</p>
 </header>
 
+<div class="layout">
 {% if result %}
 <section class="card card--surface result" aria-labelledby="result-title">
   <img class="thumb" src="{{ thumb }}" alt="The photo you uploaded" width="120" height="120" />
@@ -19,6 +20,11 @@
   <ul class="options" aria-label="Other options">
     {% for p in result.others %}{{ option(p.label | capitalize, p.percent, p.icon) }}{% endfor %}
   </ul>
+</section>
+{% else %}
+<section class="card card--surface result result--empty" aria-label="Your match">
+  <span class="result-icon" aria-hidden="true">{{ icons | join(' ') }}</span>
+  <p class="muted">Your closest match will show up here.</p>
 </section>
 {% endif %}
 
@@ -37,8 +43,9 @@
   </label>
   {% if error %}<p id="photo-error" class="error" role="alert">{{ error }}</p>{% endif %}
   <div class="actions">
-    {{ button('Upload another', kind='secondary', hidden=True, attrs='data-reset') }}
-    {{ button('Try another photo' if result else 'Find my animal', type='submit', busy_label='Finding your animal…') }}
+    {{ button('Upload another', kind='secondary', hidden=True, hook='reset') }}
+    {{ button('Try another photo' if result else 'Choose a photo', type='submit', busy_label='Finding your animal…', ready_label='Find my animal') }}
   </div>
 </form>
+</div>
 {% endblock %}

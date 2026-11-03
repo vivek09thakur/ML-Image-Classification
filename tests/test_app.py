@@ -20,7 +20,7 @@ def test_index_renders_form():
     r = client.get("/")
     assert r.status_code == 200
     assert 'name="photo"' in r.text
-    assert "Find my animal" in r.text
+    assert "Choose a photo" in r.text
 
 
 def test_predict_without_file_shows_error():

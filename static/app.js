@@ -48,6 +48,9 @@
     const home = form.dataset.home && new URL(form.dataset.home, location.href).pathname;
     if (home && location.pathname !== home) history.replaceState(null, "", home);
 
+    const pickLabel = submit.textContent;
+    const readyLabel = submit.dataset.readyLabel || pickLabel;
+
     const show = async (file) => {
       if (preview.src) URL.revokeObjectURL(preview.src);
       if (!file) {
@@ -55,6 +58,7 @@
         preview.hidden = filename.hidden = true;
         prompt.hidden = false;
         if (reset) reset.hidden = true;
+        submit.textContent = pickLabel;
         return;
       }
       const small = await shrink(file);
@@ -65,6 +69,7 @@
       preview.hidden = filename.hidden = false;
       prompt.hidden = true;
       if (reset) reset.hidden = false;
+      submit.textContent = readyLabel;
     };
 
     input.addEventListener("change", () => show(input.files[0]));
@@ -88,6 +93,12 @@
       toggleDrag(false)(e);
       const file = e.dataTransfer.files[0];
       if (file && setFiles(input, file)) show(file);
+    });
+
+    submit.addEventListener("click", (e) => {
+      if (input.files.length) return;
+      e.preventDefault();
+      input.click();
     });
 
     form.addEventListener("submit", () => {

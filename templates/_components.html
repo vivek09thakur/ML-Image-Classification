@@ -6,12 +6,12 @@
 </svg>
 {%- endmacro %}
 
-{% macro button(label, kind='primary', type='button', id=None, hidden=False, busy_label=None, attrs='') -%}
+{% macro button(label, kind='primary', type='button', hidden=False, busy_label=None, ready_label=None, hook=None) -%}
 <button class="btn btn--{{ kind }}" type="{{ type }}"
-  {%- if id %} id="{{ id }}"{% endif %}
   {%- if hidden %} hidden{% endif %}
   {%- if busy_label %} data-busy-label="{{ busy_label }}"{% endif %}
-  {%- if attrs %} {{ attrs }}{% endif %}>{{ label }}</button>
+  {%- if ready_label %} data-ready-label="{{ ready_label }}"{% endif %}
+  {%- if hook %} data-{{ hook }}{% endif %}>{{ label }}</button>
 {%- endmacro %}
 
 {% macro option(label, pct, icon) -%}

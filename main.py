@@ -7,6 +7,7 @@ POST /api/predict  multipart image -> JSON predictions
 
 import base64
 import io
+from datetime import date
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
@@ -36,14 +37,14 @@ class CachedStaticFiles(StaticFiles):
 app = FastAPI(title="Animal Classifier")
 app.mount("/static", CachedStaticFiles(directory=STATIC_DIR), name="static")
 
-ASSET_VERSIONS = {p.name: str(int(p.stat().st_mtime)) for p in STATIC_DIR.iterdir() if p.is_file()}
-
 
 def asset_context(request: Request) -> dict:
     def asset(name: str) -> str:
-        return f"{request.url_for('static', path=name)}?v={ASSET_VERSIONS.get(name, '0')}"
+        path = STATIC_DIR / name
+        version = int(path.stat().st_mtime) if path.exists() else 0
+        return f"{request.url_for('static', path=name)}?v={version}"
 
-    return {"asset": asset}
+    return {"asset": asset, "year": date.today().year}
 
 
 templates = Jinja2Templates(directory=ROOT / "templates", context_processors=[asset_context])
@@ -111,6 +112,7 @@ def thumbnail_data_url(im: Image.Image) -> str:
 
 
 def render(request: Request, status: int = 200, **context) -> HTMLResponse:
+    context.setdefault("icons", [ANIMAL_ICONS[a] for a in ANIMALS if a in ANIMAL_ICONS][:5])
     return templates.TemplateResponse(request, "index.html", context, status_code=status)
 
 
